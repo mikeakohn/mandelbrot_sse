@@ -200,17 +200,19 @@ int main(int argc, char *argv[])
 {
   struct timeval tv_start, tv_end;
   int picture[WIDTH * HEIGHT];
+#if 0
   float real_start = -0.1592 - 0.01;
   float real_end = -0.1592 + 0.01;
   float imaginary_start = -1.0317 - 0.01; 
   float imaginary_end = -1.0317 + 0.01; 
+#endif
 
-#if 0
   float real_start = 0.37 - 0.00;
   float real_end = 0.37 + 0.04;
   float imaginary_start = -0.2166 - 0.02;
   float imaginary_end = -0.2166 + 0.02;
 
+#if 0
   float real_start = -2.00;
   float real_end = 1.00;
   float imaginary_start = -1.00;
