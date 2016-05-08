@@ -3,6 +3,8 @@ BITS 64
 global render_mandelbrot_sse
 global test_sse
 
+default rel
+
 mandel_max:
   dd 4.0, 4.0, 4.0, 4.0
 
