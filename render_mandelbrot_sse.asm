@@ -155,9 +155,10 @@ mandel_sse_for_loop:
   pand xmm2, xmm6
   paddd xmm10, xmm2
 
-  packssdw xmm6, xmm10
-  packsswb xmm6, xmm6
-  pextrw eax, xmm6, 3
+  ;packssdw xmm6, xmm10
+  ;packsswb xmm6, xmm6
+  ;pextrw eax, xmm6, 3
+  pmovmskb eax, xmm6
   test eax, eax
   jz exit_mandel
 
