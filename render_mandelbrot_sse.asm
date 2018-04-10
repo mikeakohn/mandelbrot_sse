@@ -14,9 +14,6 @@ add_count:
 mul_by_2:
   dd 2.0, 2.0, 2.0, 2.0
 
-vect_3:
-  dd 3, 3, 3, 3
-
 colors:
   dd 0xff0000  ; f
   dd 0xee3300  ; e
@@ -158,8 +155,11 @@ mandel_sse_for_loop:
   ;packssdw xmm6, xmm10
   ;packsswb xmm6, xmm6
   ;pextrw eax, xmm6, 3
-  pmovmskb eax, xmm6
-  test eax, eax
+
+  ;pmovmskb eax, xmm6
+  ;test eax, eax
+
+  ptest xmm6, xmm6
   jz exit_mandel
 
   dec ecx
