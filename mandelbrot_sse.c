@@ -36,10 +36,11 @@ struct _mandel_info
   int width;             // 20
   int height;            // 24
   int reserved;
-  float real_start4[4];  // 32
+  float real_start4[8];  // 32
 };
 
 void render_mandelbrot_sse(int *picture, struct _mandel_info *mandel_info);
+void render_mandelbrot_avx(int *picture, struct _mandel_info *mandel_info);
 //void test_sse(uint32_t *vector);
 
 int mandel_calc_sse(int *picture, int width, int height, float real_start, float real_end, float imaginary_start, float imaginary_end)
@@ -59,6 +60,30 @@ int mandel_calc_sse(int *picture, int width, int height, float real_start, float
   mandel_info.real_start4[3] = mandel_info.real_start4[2] + mandel_info.r_step;
 
   render_mandelbrot_sse(picture, &mandel_info);
+
+  return 0;
+}
+
+int mandel_calc_avx(int *picture, int width, int height, float real_start, float real_end, float imaginary_start, float imaginary_end)
+{
+  struct _mandel_info mandel_info;
+  int n;
+
+  mandel_info.r_step4 = (real_end - real_start) * 4 / (float)width;
+  mandel_info.r_step = (real_end - real_start) / (float)width;
+  mandel_info.i_step = (imaginary_end - imaginary_start) / (float)height;
+  mandel_info.real_start = real_start;
+  mandel_info.imaginary_start = imaginary_start;
+  mandel_info.width = width;
+  mandel_info.height = height;
+  mandel_info.real_start4[0] = real_start;
+
+  for (n = 1; n < 8; n++)
+  {
+    mandel_info.real_start4[n] = mandel_info.real_start4[n - 1] + mandel_info.r_step;
+  }
+
+  render_mandelbrot_avx(picture, &mandel_info);
 
   return 0;
 }
@@ -218,21 +243,29 @@ int main(int argc, char *argv[])
   float imaginary_start = -1.00;
   float imaginary_end = 1.00;
 #endif
+
   int do_sse = 1;
 
   if (argc != 2)
   {
-    printf("Usage: %s <sse/normal>\n", argv[0]);
+    printf("Usage: %s <sse/avx/normal>\n", argv[0]);
     exit(0);
   }
 
   if (strcmp(argv[1], "normal") == 0) { do_sse = 0; }
+  else if (strcmp(argv[1], "sse") == 0) { do_sse = 1; }
+  else if (strcmp(argv[1], "avx") == 0) { do_sse = 2; }
 
   gettimeofday(&tv_start, NULL);
 
   if (do_sse == 1)
   {
     mandel_calc_sse(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
+  }
+    else
+  if (do_sse == 2)
+  {
+    mandel_calc_avx(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
   }
     else
   {

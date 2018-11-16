@@ -1,7 +1,10 @@
 
 default:
 	nasm -f elf64 render_mandelbrot_sse.asm
-	$(CC) -o mandelbrot_sse mandelbrot_sse.c render_mandelbrot_sse.o \
+	nasm -f elf64 render_mandelbrot_avx.asm
+	$(CC) -o mandelbrot_sse mandelbrot_sse.c \
+	  render_mandelbrot_sse.o \
+	  render_mandelbrot_avx.o \
 	  -O3 -Wall -g
 
 mac:
