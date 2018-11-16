@@ -1,5 +1,6 @@
 
 BITS 64
+global _render_mandelbrot_avx
 global render_mandelbrot_avx
 global test_avx
 
@@ -35,8 +36,9 @@ colors:
   dd 0x000066  ; 1
   dd 0x000000  ; 0
 
-; mandel_sse(rdi=[ count, count, count, count ], rsi=[ r, r, r, r, i, i, i, i ], rdx=struct _mandel_info)
-; mandel_sse(rdi=picture, rsi=struct _mandel_info)
+; mandel_avx(rdi=[ count, count, count, count ], rsi=[ r, r, r, r, i, i, i, i ], rdx=struct _mandel_info)
+; mandel_avx(rdi=picture, rsi=struct _mandel_info)
+_render_mandelbrot_avx:
 render_mandelbrot_avx:
   sub rsp, 64 
 
@@ -85,7 +87,7 @@ render_mandelbrot_avx:
   ;mov eax, [rsi+16]
   ;mov [rsp+12], eax
 
-  ; xmm1 = [ i0, i1, i2, i3, i4, i5, i6, i7 ]  imaginary_start
+  ; ymm1 = [ i0, i1, i2, i3, i4, i5, i6, i7 ]  imaginary_start
   ;mov eax, [rsi+16]
   ;mov [rsp+16], eax
   ;mov [rsp+20], eax
@@ -125,19 +127,19 @@ for_x:
   ;vsubpd ymm10, ymm10, ymm10
 
   mov ecx, 127
-mandel_sse_for_loop:
-  ; xmm7 = ti = (2 * zr * zi);
+mandel_avx_for_loop:
+  ; ymm7 = ti = (2 * zr * zi);
   vmovapd ymm7, ymm4
   vmulps ymm7, ymm7, ymm5
   vmulps ymm7, ymm7, ymm8
 
-  ; xmm4 = tr = ((zr * zr) - (zi * zi));
+  ; ymm4 = tr = ((zr * zr) - (zi * zi));
   vmulps ymm4, ymm4, ymm4
   vmulps ymm5, ymm5, ymm5
   vsubps ymm4, ymm4, ymm5
 
-  ; xmm4 = zr = tr + r;
-  ; xmm5 = zi = ti + i;
+  ; ymm4 = zr = tr + r;
+  ; ymm5 = zi = ti + i;
   vmovapd ymm5, ymm7
   vaddps ymm4, ymm4, ymm0 
   vaddps ymm5, ymm5, ymm1 
@@ -158,7 +160,7 @@ mandel_sse_for_loop:
   jz exit_mandel
 
   dec ecx
-  jnz mandel_sse_for_loop
+  jnz mandel_avx_for_loop
 
 exit_mandel:
   vpsrld ymm10, 3
@@ -202,7 +204,7 @@ exit_mandel:
   add rdi, 32
 
   ; [ r0, r1, r2, r3, r4, r5, r6, r7 ] += rstep4;
-  vaddps xmm0, xmm11
+  vaddps ymm0, ymm8, ymm11
 
   ; next x
   mov eax, [rsp+32]
@@ -212,7 +214,7 @@ exit_mandel:
   jl for_x
 
   ; [ i0, i1, i2, i3, i4, i5, i6, i7 ] += istep;
-  vaddps xmm1, xmm12
+  vaddps ymm1, ymm1, ymm12
 
   ; next y
   mov eax, [rsp+36]

@@ -1,5 +1,6 @@
 
 BITS 64
+global _render_mandelbrot_sse
 global render_mandelbrot_sse
 global test_sse
 
@@ -34,6 +35,7 @@ colors:
 
 ; mandel_sse(rdi=[ count, count, count, count ], rsi=[ r, r, r, r, i, i, i, i ], rdx=struct _mandel_info)
 ; mandel_sse(rdi=picture, rsi=struct _mandel_info)
+_render_mandelbrot_sse:
 render_mandelbrot_sse:
   sub rsp, 64 
 
