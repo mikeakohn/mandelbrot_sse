@@ -42,6 +42,7 @@ struct _mandel_info
 void render_mandelbrot_sse(int *picture, struct _mandel_info *mandel_info);
 void render_mandelbrot_avx(int *picture, struct _mandel_info *mandel_info);
 //void test_sse(uint32_t *vector);
+void test_avx(uint32_t *vector);
 
 int mandel_calc_sse(int *picture, int width, int height, float real_start, float real_end, float imaginary_start, float imaginary_end)
 {
@@ -69,7 +70,7 @@ int mandel_calc_avx(int *picture, int width, int height, float real_start, float
   struct _mandel_info mandel_info;
   int n;
 
-  mandel_info.r_step4 = (real_end - real_start) * 4 / (float)width;
+  mandel_info.r_step4 = (real_end - real_start) * 8 / (float)width;
   mandel_info.r_step = (real_end - real_start) / (float)width;
   mandel_info.i_step = (imaginary_end - imaginary_start) / (float)height;
   mandel_info.real_start = real_start;
@@ -299,5 +300,4 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-
 

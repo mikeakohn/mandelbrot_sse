@@ -2,6 +2,7 @@
 BITS 64
 global _render_mandelbrot_avx
 global render_mandelbrot_avx
+global _test_avx
 global test_avx
 
 default rel
@@ -220,14 +221,19 @@ exit_mandel:
   add rsp, 64
   ret
 
+_test_avx:
 test_avx:
-  mov dword [rdi], 1
-  mov dword [rdi+4], 1
-  mov dword [rdi+8], 1
-  mov dword [rdi+12], 1
-  movups xmm14, [rdi]
-  packssdw xmm14, xmm14
-  packsswb xmm14, xmm14
-  movups [rdi], xmm14
+  ;mov dword [rdi], 1
+  ;mov dword [rdi+4], 1
+  ;mov dword [rdi+8], 1
+  ;mov dword [rdi+12], 1
+  ;mov dword [rdi+16], 1
+  ;mov dword [rdi+20], 1
+  ;mov dword [rdi+24], 1
+  ;mov dword [rdi+28], 1
+  vmovups ymm14, [rdi]
+  vpackssdw ymm14, ymm14
+  vpacksswb ymm14, ymm14
+  vmovups [rdi], ymm14
   ret
 

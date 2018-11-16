@@ -2,6 +2,7 @@
 BITS 64
 global _render_mandelbrot_sse
 global render_mandelbrot_sse
+global _test_sse
 global test_sse
 
 default rel
@@ -215,6 +216,7 @@ exit_mandel:
   add rsp, 64 
   ret
 
+_test_sse:
 test_sse:
   mov dword [rdi], 1
   mov dword [rdi+4], 1
