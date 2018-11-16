@@ -40,29 +40,26 @@ colors:
 ; mandel_avx(rdi=picture, rsi=struct _mandel_info)
 _render_mandelbrot_avx:
 render_mandelbrot_avx:
-  sub rsp, 64 
+  sub rsp, 64
 
   ; local variables are:
-  ; [ r, r, r, r ] 0
-  ; [ i, i, i, i ] 16
-  ; x              32
-  ; y              36 
-  ;
-  ;
-  ; [ temp, temp, temp, temp] 48
+  ; [ temp, temp, temp, temp ] 0
+  ; [ temp, temp, temp, temp ] 16
+  ; x                          32
+  ; y                          36
 
   ; ymm3 = [ 4.0, 4.0, 4.0, 4.0 ]
   ; ymm8 = [ 2.0, 2.0, 2.0, 2.0 ]
   vmovups ymm3, [mandel_max]
   vmovups ymm8, [mul_by_2]
 
-  ; ymm14 = [ 1, 1, 1, 1 ]
+  ; ymm14 = [ 1, 1, 1, 1, 1, 1, 1, 1 ]
   vmovups ymm14, [add_count]
 
   ; rdx = int colors[]
   mov rdx, colors
 
-  ; ymm11 = [ r_step4, r_step4, r_step4, r_step4 ]
+  ; ymm11 = [ r_step4, r_step4, r_step4, r_step4, r_step4, r_step4, r_step4, . ]
   ;mov eax, [rsi+0]
   ;mov [rsp+16], eax
   ;mov [rsp+20], eax
@@ -97,7 +94,7 @@ render_mandelbrot_avx:
   vbroadcastss ymm1, [rsi+16]
 
   ; y = 0
-  xor eax, eax 
+  xor eax, eax
   mov [rsp+36], eax
 
   ; for (y = 0; y < height; y++)
@@ -112,19 +109,16 @@ for_y:
 
   ; for (x = 0; x < width; y++)
 for_x:
-  ; ymm2 = [ 1, 1, 1, 1 ]
+  ; ymm2 = [ 1, 1, 1, 1, 1, 1, 1, 1 ]
   vmovaps ymm2, ymm14
 
   ; ymm4 = zr = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
   ; ymm5 = zi = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
   vpxor ymm4, ymm4, ymm4
   vpxor ymm5, ymm5, ymm5
-  ;vsubpd ymm4, ymm4, ymm4
-  ;vsubpd ymm5, ymm5, ymm5
 
   ; counts
   vpxor ymm10, ymm10, ymm10
-  ;vsubpd ymm10, ymm10, ymm10
 
   mov ecx, 127
 mandel_avx_for_loop:
@@ -141,8 +135,8 @@ mandel_avx_for_loop:
   ; ymm4 = zr = tr + r;
   ; ymm5 = zi = ti + i;
   vmovapd ymm5, ymm7
-  vaddps ymm4, ymm4, ymm0 
-  vaddps ymm5, ymm5, ymm1 
+  vaddps ymm4, ymm4, ymm0
+  vaddps ymm5, ymm5, ymm1
 
   ; if ((tr * tr) + (ti * ti) > 4) break;
   vmovapd ymm6, ymm4
@@ -167,7 +161,7 @@ exit_mandel:
   vpslld ymm10, 2
   vmovupd [rsp+0], ymm10
 
-  ; map colors into picture 
+  ; map colors into picture
   mov eax, [rsp+0]
   mov eax, [rdx+rax]
   mov [rdi], eax
@@ -204,7 +198,7 @@ exit_mandel:
   add rdi, 32
 
   ; [ r0, r1, r2, r3, r4, r5, r6, r7 ] += rstep4;
-  vaddps ymm0, ymm8, ymm11
+  vaddps ymm0, ymm0, ymm11
 
   ; next x
   mov eax, [rsp+32]
@@ -223,7 +217,7 @@ exit_mandel:
   cmp eax, [rsi+24]
   jl for_y
 
-  add rsp, 64 
+  add rsp, 64
   ret
 
 test_avx:
