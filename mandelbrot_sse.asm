@@ -38,13 +38,13 @@ colors:
 ; mandel_sse(rdi=picture, rsi=struct _mandel_info)
 _mandelbrot_sse:
 mandelbrot_sse:
-  sub rsp, 64 
+  sub rsp, 64
 
   ; local variables are:
   ; [ r, r, r, r ] 0
   ; [ i, i, i, i ] 16
   ; x              32
-  ; y              36 
+  ; y              36
   ;
   ;
   ; [ temp, temp, temp, temp] 48
@@ -99,7 +99,7 @@ mandelbrot_sse:
   movups xmm1, [rsp+16]
 
   ; y = 0
-  xor eax, eax 
+  xor eax, eax
   mov [rsp+36], eax
 
   ; for (y = 0; y < height; y++)
@@ -140,8 +140,8 @@ mandel_sse_for_loop:
   ; xmm4 = zr = tr + r;
   ; xmm5 = zi = ti + i;
   movapd xmm5, xmm7
-  addps xmm4, xmm0 
-  addps xmm5, xmm1 
+  addps xmm4, xmm0
+  addps xmm5, xmm1
 
   ; if ((tr * tr) + (ti * ti) > 4) break;
   movapd xmm6, xmm4
@@ -173,7 +173,7 @@ exit_mandel:
   pslld xmm10, 2
   movupd [rsp+48], xmm10
 
-  ; map colors into picture 
+  ; map colors into picture
   mov eax, [rsp+48]
   mov eax, [rdx+rax]
   mov [rdi], eax
@@ -213,7 +213,7 @@ exit_mandel:
   cmp eax, [rsi+24]
   jl for_y
 
-  add rsp, 64 
+  add rsp, 64
   ret
 
 _test_sse:
