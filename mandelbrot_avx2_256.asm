@@ -1,7 +1,7 @@
 
 BITS 64
-global _render_mandelbrot_avx
-global render_mandelbrot_avx
+global _mandelbrot_avx2_256
+global mandelbrot_avx2_256
 global _test_avx
 global test_avx
 
@@ -39,8 +39,8 @@ colors:
 
 ; mandel_avx(rdi=[ count, count, count, count ], rsi=[ r, r, r, r, i, i, i, i ], rdx=struct _mandel_info)
 ; mandel_avx(rdi=picture, rsi=struct _mandel_info)
-_render_mandelbrot_avx:
-render_mandelbrot_avx:
+_mandelbrot_avx2_256:
+mandelbrot_avx2_256:
   sub rsp, 64
 
   ; local variables are:

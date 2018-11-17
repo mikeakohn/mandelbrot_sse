@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <sys/time.h>
 
@@ -39,12 +40,20 @@ struct _mandel_info
   float real_start4[8];  // 32
 };
 
-void render_mandelbrot_sse(int *picture, struct _mandel_info *mandel_info);
-void render_mandelbrot_avx(int *picture, struct _mandel_info *mandel_info);
+void mandelbrot_sse(int *picture, struct _mandel_info *mandel_info);
+void mandelbrot_avx2_256(int *picture, struct _mandel_info *mandel_info);
+void mandelbrot_avx2_512(int *picture, struct _mandel_info *mandel_info);
 //void test_sse(uint32_t *vector);
 void test_avx(uint32_t *vector);
 
-int mandel_calc_sse(int *picture, int width, int height, float real_start, float real_end, float imaginary_start, float imaginary_end)
+int mandel_calc_sse(
+  int *picture,
+  int width,
+  int height,
+  float real_start,
+  float real_end,
+  float imaginary_start,
+  float imaginary_end)
 {
   struct _mandel_info mandel_info;
 
@@ -60,12 +69,19 @@ int mandel_calc_sse(int *picture, int width, int height, float real_start, float
   mandel_info.real_start4[2] = mandel_info.real_start4[1] + mandel_info.r_step;
   mandel_info.real_start4[3] = mandel_info.real_start4[2] + mandel_info.r_step;
 
-  render_mandelbrot_sse(picture, &mandel_info);
+  mandelbrot_sse(picture, &mandel_info);
 
   return 0;
 }
 
-int mandel_calc_avx(int *picture, int width, int height, float real_start, float real_end, float imaginary_start, float imaginary_end)
+int mandel_calc_avx2_256(
+  int *picture,
+  int width,
+  int height,
+  float real_start,
+  float real_end,
+  float imaginary_start,
+  float imaginary_end)
 {
   struct _mandel_info mandel_info;
   int n;
@@ -84,12 +100,19 @@ int mandel_calc_avx(int *picture, int width, int height, float real_start, float
     mandel_info.real_start4[n] = mandel_info.real_start4[n - 1] + mandel_info.r_step;
   }
 
-  render_mandelbrot_avx(picture, &mandel_info);
+  mandelbrot_avx2_256(picture, &mandel_info);
 
   return 0;
 }
 
-int mandel_calc(int *picture, int width, int height, float real_start, float real_end, float imaginary_start, float imaginary_end)
+int mandel_calc(
+  int *picture,
+  int width,
+  int height,
+  float real_start,
+  float real_end,
+  float imaginary_start,
+  float imaginary_end)
 {
   const int max_count = 127;
   int x,y;
@@ -229,8 +252,8 @@ int main(int argc, char *argv[])
 #if 0
   float real_start = -0.1592 - 0.01;
   float real_end = -0.1592 + 0.01;
-  float imaginary_start = -1.0317 - 0.01; 
-  float imaginary_end = -1.0317 + 0.01; 
+  float imaginary_start = -1.0317 - 0.01;
+  float imaginary_end = -1.0317 + 0.01;
 #endif
 
   float real_start = 0.37 - 0.00;
@@ -249,13 +272,13 @@ int main(int argc, char *argv[])
 
   if (argc != 2)
   {
-    printf("Usage: %s <sse/avx/normal>\n", argv[0]);
+    printf("Usage: %s <sse/avx2_256/normal>\n", argv[0]);
     exit(0);
   }
 
   if (strcmp(argv[1], "normal") == 0) { do_sse = 0; }
   else if (strcmp(argv[1], "sse") == 0) { do_sse = 1; }
-  else if (strcmp(argv[1], "avx") == 0) { do_sse = 2; }
+  else if (strcmp(argv[1], "avx2_256") == 0) { do_sse = 2; }
 
   gettimeofday(&tv_start, NULL);
 
@@ -266,7 +289,7 @@ int main(int argc, char *argv[])
     else
   if (do_sse == 2)
   {
-    mandel_calc_avx(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
+    mandel_calc_avx2_256(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
   }
     else
   {
