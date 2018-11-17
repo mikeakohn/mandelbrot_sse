@@ -132,7 +132,7 @@ int mandel_calc_avx2_512(
     mandel_info.real_start4[n] = mandel_info.real_start4[n - 1] + mandel_info.r_step;
   }
 
-  mandelbrot_avx2_256(picture, &mandel_info);
+  mandelbrot_avx2_512(picture, &mandel_info);
 
   return 0;
 }

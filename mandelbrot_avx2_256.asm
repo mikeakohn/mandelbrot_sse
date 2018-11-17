@@ -142,40 +142,19 @@ exit_mandel:
   vmovupd [rsp+0], ymm10
 
   ; map colors into picture
-  mov eax, [rsp+0]
+  mov ecx, 0
+pixel_loop:
+
+  mov eax, [rsp+rcx]
   mov eax, [rdx+rax]
   mov [rdi], eax
 
-  mov eax, [rsp+4]
-  mov eax, [rdx+rax]
-  mov [rdi+4], eax
+  ;; picture += 1 (4 bytes)
+  add rdi, 4
 
-  mov eax, [rsp+8]
-  mov eax, [rdx+rax]
-  mov [rdi+8], eax
-
-  mov eax, [rsp+12]
-  mov eax, [rdx+rax]
-  mov [rdi+12], eax
-
-  mov eax, [rsp+16]
-  mov eax, [rdx+rax]
-  mov [rdi+16], eax
-
-  mov eax, [rsp+20]
-  mov eax, [rdx+rax]
-  mov [rdi+20], eax
-
-  mov eax, [rsp+24]
-  mov eax, [rdx+rax]
-  mov [rdi+24], eax
-
-  mov eax, [rsp+28]
-  mov eax, [rdx+rax]
-  mov [rdi+28], eax
-
-  ; picture += 8
-  add rdi, 32
+  add ecx, 4
+  cmp ecx, 32
+  jnz pixel_loop
 
   ; [ r0, r1, r2, r3, r4, r5, r6, r7 ] += rstep4;
   vaddps ymm0, ymm0, ymm11

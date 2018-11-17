@@ -160,7 +160,6 @@ pixel_loop:
   mov [rdi], eax
 
   add rdi, 4
-  add rdx, 4
   add ecx, 4
   cmp ecx, 128
   jnz pixel_loop
@@ -172,7 +171,7 @@ pixel_loop:
 
   ; next x
   mov eax, [rsp+32]
-  add eax, 8
+  add eax, 16
   mov [rsp+32], eax
   cmp eax, [rsi+20]
   jl for_x
