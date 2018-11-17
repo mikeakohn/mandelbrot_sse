@@ -2,8 +2,8 @@
 BITS 64
 global _mandelbrot_avx2_256
 global mandelbrot_avx2_256
-global _test_avx
-global test_avx
+global _test_avx2_256
+global test_avx2_256
 
 default rel
 
@@ -61,24 +61,12 @@ mandelbrot_avx2_256:
   mov rdx, colors
 
   ; ymm11 = [ r_step4, r_step4, r_step4, r_step4, r_step4, r_step4, r_step4, . ]
-  ;mov eax, [rsi+0]
-  ;mov [rsp+16], eax
-  ;mov [rsp+20], eax
-  ;mov [rsp+24], eax
-  ;mov [rsp+28], eax
-  ;movups xmm11, [rsp+16]
   vbroadcastss ymm11, [rsi+0]
 
   ; ymm13 = [ r0, r1, r2, r3, r4, r5, r6, r7 ]
   vmovups ymm13, [rsi+32]
 
   ; ymm12 = [ i_step, i_step, i_step, i_step ]
-  ;mov eax, [rsi+8]
-  ;mov [rsp+16], eax
-  ;mov [rsp+20], eax
-  ;mov [rsp+24], eax
-  ;mov [rsp+28], eax
-  ;movups xmm12, [rsp+16]
   vbroadcastss ymm12, [rsi+8]
 
   ; imaginary_start = mandel_info->imaginary_start
@@ -86,12 +74,6 @@ mandelbrot_avx2_256:
   ;mov [rsp+12], eax
 
   ; ymm1 = [ i0, i1, i2, i3, i4, i5, i6, i7 ]  imaginary_start
-  ;mov eax, [rsi+16]
-  ;mov [rsp+16], eax
-  ;mov [rsp+20], eax
-  ;mov [rsp+24], eax
-  ;mov [rsp+28], eax
-  ;movups xmm1, [rsp+16]
   vbroadcastss ymm1, [rsi+16]
 
   ; y = 0
@@ -218,8 +200,8 @@ exit_mandel:
   add rsp, 64
   ret
 
-_test_avx:
-test_avx:
+_test_avx2_256:
+test_avx2_256:
   ;mov dword [rdi], 1
   ;mov dword [rdi+4], 1
   ;mov dword [rdi+8], 1

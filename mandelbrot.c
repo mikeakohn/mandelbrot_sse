@@ -37,14 +37,15 @@ struct _mandel_info
   int width;             // 20
   int height;            // 24
   int reserved;
-  float real_start4[8];  // 32
+  float real_start4[16]; // 32
 };
 
 void mandelbrot_sse(int *picture, struct _mandel_info *mandel_info);
 void mandelbrot_avx2_256(int *picture, struct _mandel_info *mandel_info);
 void mandelbrot_avx2_512(int *picture, struct _mandel_info *mandel_info);
 //void test_sse(uint32_t *vector);
-void test_avx(uint32_t *vector);
+//void test_avx2_256(uint32_t *vector);
+//void test_avx2_512(uint32_t *vector);
 
 int mandel_calc_sse(
   int *picture,
@@ -96,6 +97,37 @@ int mandel_calc_avx2_256(
   mandel_info.real_start4[0] = real_start;
 
   for (n = 1; n < 8; n++)
+  {
+    mandel_info.real_start4[n] = mandel_info.real_start4[n - 1] + mandel_info.r_step;
+  }
+
+  mandelbrot_avx2_256(picture, &mandel_info);
+
+  return 0;
+}
+
+int mandel_calc_avx2_512(
+  int *picture,
+  int width,
+  int height,
+  float real_start,
+  float real_end,
+  float imaginary_start,
+  float imaginary_end)
+{
+  struct _mandel_info mandel_info;
+  int n;
+
+  mandel_info.r_step4 = (real_end - real_start) * 16 / (float)width;
+  mandel_info.r_step = (real_end - real_start) / (float)width;
+  mandel_info.i_step = (imaginary_end - imaginary_start) / (float)height;
+  mandel_info.real_start = real_start;
+  mandel_info.imaginary_start = imaginary_start;
+  mandel_info.width = width;
+  mandel_info.height = height;
+  mandel_info.real_start4[0] = real_start;
+
+  for (n = 1; n < 16; n++)
   {
     mandel_info.real_start4[n] = mandel_info.real_start4[n - 1] + mandel_info.r_step;
   }
@@ -244,7 +276,6 @@ void write_bmp(int *picture, int width, int height)
   fclose(out);
 }
 
-
 int main(int argc, char *argv[])
 {
   struct timeval tv_start, tv_end;
@@ -268,7 +299,7 @@ int main(int argc, char *argv[])
   float imaginary_end = 1.00;
 #endif
 
-  int do_sse = 1;
+  int do_simd = 1;
 
   if (argc != 2)
   {
@@ -276,20 +307,26 @@ int main(int argc, char *argv[])
     exit(0);
   }
 
-  if (strcmp(argv[1], "normal") == 0) { do_sse = 0; }
-  else if (strcmp(argv[1], "sse") == 0) { do_sse = 1; }
-  else if (strcmp(argv[1], "avx2_256") == 0) { do_sse = 2; }
+  if (strcmp(argv[1], "normal") == 0) { do_simd = 0; }
+  else if (strcmp(argv[1], "sse") == 0) { do_simd = 1; }
+  else if (strcmp(argv[1], "avx2_256") == 0) { do_simd = 2; }
+  else if (strcmp(argv[1], "avx2_512") == 0) { do_simd = 3; }
 
   gettimeofday(&tv_start, NULL);
 
-  if (do_sse == 1)
+  if (do_simd == 1)
   {
     mandel_calc_sse(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
   }
     else
-  if (do_sse == 2)
+  if (do_simd == 2)
   {
     mandel_calc_avx2_256(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
+  }
+    else
+  if (do_simd == 3)
+  {
+    mandel_calc_avx2_512(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
   }
     else
   {
