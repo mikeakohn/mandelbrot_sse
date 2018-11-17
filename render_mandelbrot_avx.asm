@@ -124,8 +124,7 @@ for_x:
   mov ecx, 127
 mandel_avx_for_loop:
   ; ymm7 = ti = (2 * zr * zi);
-  vmovapd ymm7, ymm4
-  vmulps ymm7, ymm7, ymm5
+  vmulps ymm7, ymm4, ymm5
   vmulps ymm7, ymm7, ymm8
 
   ; ymm4 = tr = ((zr * zr) - (zi * zi));
@@ -135,16 +134,14 @@ mandel_avx_for_loop:
 
   ; ymm4 = zr = tr + r;
   ; ymm5 = zi = ti + i;
-  vmovapd ymm5, ymm7
   vaddps ymm4, ymm4, ymm0
-  vaddps ymm5, ymm5, ymm1
+  vaddps ymm5, ymm7, ymm1
 
   ; if ((tr * tr) + (ti * ti) > 4) break;
-  vmovapd ymm6, ymm4
-  vmovapd ymm7, ymm5
-  vmulps ymm6, ymm6, ymm6
-  vmulps ymm7, ymm7, ymm7
+  vmulps ymm6, ymm4, ymm4
+  vmulps ymm7, ymm5, ymm5
   vaddps ymm6, ymm6, ymm7
+
   vcmpleps ymm6, ymm6, ymm3
 
   ; count const = 0 if less than
