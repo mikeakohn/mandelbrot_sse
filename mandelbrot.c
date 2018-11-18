@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
 
   if (argc != 2)
   {
-    printf("Usage: %s <sse/avx2_256/normal>\n", argv[0]);
+    printf("Usage: %s <normal/sse/avx2_256/avx2_512>\n", argv[0]);
     exit(0);
   }
 

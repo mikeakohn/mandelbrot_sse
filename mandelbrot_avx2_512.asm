@@ -103,13 +103,10 @@ for_x:
 
   ; zmm4 = zr = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 .. 0.0 ]
   ; zmm5 = zi = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 .. 0.0 ]
-  ;vpsubq zmm4, zmm4, zmm4
-  ;vpsubq zmm5, zmm5, zmm5
   vpxorq zmm4, zmm4, zmm4
   vpxorq zmm5, zmm5, zmm5
 
   ; counts
-  ;vpsubq zmm10, zmm10, zmm10
   vpxorq zmm10, zmm10, zmm10
 
   mov ecx, 127
@@ -133,15 +130,12 @@ mandel_avx_for_loop:
   vmulps zmm7, zmm5, zmm5
   vaddps zmm6, zmm6, zmm7
 
-  ;vcmpleps zmm6, zmm6, zmm3
-  vcmpps k2, zmm6, zmm3, 2
+  vcmpps k1, zmm6, zmm3, 2
 
   ; count const = 0 if less than
-  vpandq zmm2, zmm2, zmm6
-  vpaddd zmm10, zmm10, zmm2
+  vpaddd zmm10 {k1}, zmm10, zmm2
 
-  ;vptest zmm6, zmm6
-  vptestmd k2, zmm6, zmm6
+  ktestw k1, k1
   jz exit_mandel
 
   dec ecx
@@ -150,7 +144,7 @@ mandel_avx_for_loop:
 exit_mandel:
   vpsrld zmm10, 3
   vpslld zmm10, 2
-  vmovupd [rsp+0], zmm10
+  vmovupd [rsp+64], zmm10
 
   mov ecx, 64
 pixel_loop:
