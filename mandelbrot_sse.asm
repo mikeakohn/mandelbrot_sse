@@ -171,22 +171,22 @@ mandel_sse_for_loop:
 exit_mandel:
   psrld xmm10, 3
   pslld xmm10, 2
-  movupd [rsp+48], xmm10
+  ;movupd [rsp+48], xmm10
 
   ; map colors into picture
-  mov eax, [rsp+48]
+  pextrw eax, xmm10, 0
   mov eax, [rdx+rax]
   mov [rdi], eax
 
-  mov eax, [rsp+52]
+  pextrw eax, xmm10, 4
   mov eax, [rdx+rax]
   mov [rdi+4], eax
 
-  mov eax, [rsp+56]
+  pextrw eax, xmm10, 4
   mov eax, [rdx+rax]
   mov [rdi+8], eax
 
-  mov eax, [rsp+60]
+  pextrw eax, xmm10, 12
   mov eax, [rdx+rax]
   mov [rdi+12], eax
 
