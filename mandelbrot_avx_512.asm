@@ -1,9 +1,9 @@
 
 BITS 64
-global _mandelbrot_avx2_512
-global mandelbrot_avx2_512
-global _test_avx2_512
-global test_avx2_512
+global _mandelbrot_avx_512
+global mandelbrot_avx_512
+global _test_avx_512
+global test_avx_512
 
 default rel
 
@@ -45,8 +45,8 @@ colors:
 
 ; mandel_avx(rdi=[ count, count, count, count ], rsi=[ r, r, r, r, i, i, i, i ], rdx=struct _mandel_info)
 ; mandel_avx(rdi=picture, rsi=struct _mandel_info)
-_mandelbrot_avx2_512:
-mandelbrot_avx2_512:
+_mandelbrot_avx_512:
+mandelbrot_avx_512:
   sub rsp, 128
 
   ; local variables are:
@@ -183,8 +183,8 @@ pixel_loop:
   add rsp, 128
   ret
 
-_test_avx2_512:
-test_avx2_512:
+_test_avx_512:
+test_avx_512:
   ;mov dword [rdi], 1
   ;mov dword [rdi+4], 1
   ;mov dword [rdi+8], 1

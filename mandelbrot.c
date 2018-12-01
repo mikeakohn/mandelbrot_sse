@@ -41,11 +41,11 @@ struct _mandel_info
 };
 
 void mandelbrot_sse(int *picture, struct _mandel_info *mandel_info);
-void mandelbrot_avx2_256(int *picture, struct _mandel_info *mandel_info);
-void mandelbrot_avx2_512(int *picture, struct _mandel_info *mandel_info);
+void mandelbrot_avx2(int *picture, struct _mandel_info *mandel_info);
+void mandelbrot_avx_512(int *picture, struct _mandel_info *mandel_info);
 //void test_sse(uint32_t *vector);
-//void test_avx2_256(uint32_t *vector);
-//void test_avx2_512(uint32_t *vector);
+//void test_avx2(uint32_t *vector);
+//void test_avx_512(uint32_t *vector);
 
 int mandel_calc_sse(
   int *picture,
@@ -75,7 +75,7 @@ int mandel_calc_sse(
   return 0;
 }
 
-int mandel_calc_avx2_256(
+int mandel_calc_avx2(
   int *picture,
   int width,
   int height,
@@ -101,12 +101,12 @@ int mandel_calc_avx2_256(
     mandel_info.real_start4[n] = mandel_info.real_start4[n - 1] + mandel_info.r_step;
   }
 
-  mandelbrot_avx2_256(picture, &mandel_info);
+  mandelbrot_avx2(picture, &mandel_info);
 
   return 0;
 }
 
-int mandel_calc_avx2_512(
+int mandel_calc_avx_512(
   int *picture,
   int width,
   int height,
@@ -132,7 +132,7 @@ int mandel_calc_avx2_512(
     mandel_info.real_start4[n] = mandel_info.real_start4[n - 1] + mandel_info.r_step;
   }
 
-  mandelbrot_avx2_512(picture, &mandel_info);
+  mandelbrot_avx_512(picture, &mandel_info);
 
   return 0;
 }
@@ -303,14 +303,14 @@ int main(int argc, char *argv[])
 
   if (argc != 2)
   {
-    printf("Usage: %s <normal/sse/avx2_256/avx2_512>\n", argv[0]);
+    printf("Usage: %s <normal/sse/avx2/avx_512>\n", argv[0]);
     exit(0);
   }
 
   if (strcmp(argv[1], "normal") == 0) { do_simd = 0; }
   else if (strcmp(argv[1], "sse") == 0) { do_simd = 1; }
-  else if (strcmp(argv[1], "avx2_256") == 0) { do_simd = 2; }
-  else if (strcmp(argv[1], "avx2_512") == 0) { do_simd = 3; }
+  else if (strcmp(argv[1], "avx2") == 0) { do_simd = 2; }
+  else if (strcmp(argv[1], "avx_512") == 0) { do_simd = 3; }
 
   gettimeofday(&tv_start, NULL);
 
@@ -321,12 +321,12 @@ int main(int argc, char *argv[])
     else
   if (do_simd == 2)
   {
-    mandel_calc_avx2_256(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
+    mandel_calc_avx2(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
   }
     else
   if (do_simd == 3)
   {
-    mandel_calc_avx2_512(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
+    mandel_calc_avx_512(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
   }
     else
   {
