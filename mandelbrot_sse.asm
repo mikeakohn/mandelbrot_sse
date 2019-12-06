@@ -178,7 +178,7 @@ exit_mandel:
   mov eax, [rdx+rax]
   mov [rdi], eax
 
-  pextrw eax, xmm10, 4
+  pextrw eax, xmm10, 2
   mov eax, [rdx+rax]
   mov [rdi+4], eax
 
@@ -186,7 +186,7 @@ exit_mandel:
   mov eax, [rdx+rax]
   mov [rdi+8], eax
 
-  pextrw eax, xmm10, 12
+  pextrw eax, xmm10, 6
   mov eax, [rdx+rax]
   mov [rdi+12], eax
 
