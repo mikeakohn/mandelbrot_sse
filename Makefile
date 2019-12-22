@@ -8,6 +8,11 @@ default:
 	  mandelbrot_avx2.o \
 	  mandelbrot_avx_512.o \
 	  -O3 -Wall -g
+	$(CC) -o mandelbrot_threaded mandelbrot_threaded.c \
+	  mandelbrot_sse.o \
+	  mandelbrot_avx2.o \
+	  mandelbrot_avx_512.o \
+	  -lpthread -O3 -Wall -g
 
 mac:
 	nasm -f macho64 mandelbrot_sse.asm
