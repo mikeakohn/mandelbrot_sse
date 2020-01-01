@@ -18,8 +18,8 @@ To build the software just type: make
 
 Examples of running it:
 
-./mandelbrot avx2
-./mandelbrot_threaded sse 8
+    ./mandelbrot avx2
+    ./mandelbrot_threaded sse 8
 
 For all the options simply run the program with no command line arguments.
 
