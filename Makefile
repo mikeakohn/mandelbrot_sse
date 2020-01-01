@@ -23,8 +23,10 @@ mac:
 	  mandelbrot_avx2.o \
 	  mandelbrot_avx_512.o \
 	  -O3 -Wall -g -m64 -Wl,-no_pie
+cuda:
+	nvcc -o mandelbrot_cuda mandelbrot_cuda.cu -g -O3
 
 clean:
-	@rm -f mandelbrot *.o
+	@rm -f mandelbrot mandelbrot_cuda *.o
 	@echo "Clean!"
 
