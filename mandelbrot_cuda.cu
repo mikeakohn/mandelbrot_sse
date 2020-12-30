@@ -383,14 +383,16 @@ int main(int argc, char *argv[])
     do_cuda = 2;
   }
 
+  const int length = WIDTH * HEIGHT * sizeof(int);
+
   switch (do_cuda)
   {
     case 0:
-      picture = (int *)malloc(WIDTH * HEIGHT * sizeof(int));
+      picture = (int *)malloc(length);
       break;
     case 1:
     case 2:
-      cudaMallocManaged(&picture, WIDTH * HEIGHT * sizeof(int));
+      cudaMallocManaged(&picture, length);
       break;
   }
 
@@ -423,17 +425,23 @@ int main(int argc, char *argv[])
   time_diff += (tv_end.tv_sec - tv_start.tv_sec) * 1000000;
   printf("time=%f\n", (float)time_diff / 1000000);
 
-  write_bmp(picture, WIDTH, HEIGHT);
-
   switch (do_cuda)
   {
     case 0:
+    {
+      write_bmp(picture, WIDTH, HEIGHT);
       free(picture);
       break;
+    }
     case 1:
     case 2:
+    {
+      int *image = (int *)malloc(length);
+      cudaMemcpy(image, picture, length, cudaMemcpyDeviceToHost);
+      write_bmp(image, WIDTH, HEIGHT);
       cudaFree(picture);
       break;
+    }
   }
 
   return 0;
