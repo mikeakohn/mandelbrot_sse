@@ -1,32 +1,11 @@
 
 default:
-	nasm -f elf64 mandelbrot_sse.asm
-	nasm -f elf64 mandelbrot_avx2.asm
-	nasm -f elf64 mandelbrot_avx_512.asm
-	$(CC) -o mandelbrot mandelbrot.c \
-	  mandelbrot_sse.o \
-	  mandelbrot_avx2.o \
-	  mandelbrot_avx_512.o \
-	  -O3 -Wall -g
-	$(CC) -o mandelbrot_threaded mandelbrot_threaded.c \
-	  mandelbrot_sse.o \
-	  mandelbrot_avx2.o \
-	  mandelbrot_avx_512.o \
-	  -lpthread -O3 -Wall -g
+	@+make -C build
 
 mac:
-	nasm -f macho64 mandelbrot_sse.asm
-	nasm -f macho64 mandelbrot_avx2.asm
-	nasm -f macho64 mandelbrot_avx_512.asm
-	$(CC) -o mandelbrot mandelbrot.c \
-	  mandelbrot_sse.o \
-	  mandelbrot_avx2.o \
-	  mandelbrot_avx_512.o \
-	  -O3 -Wall -g -m64 -Wl,-no_pie
-cuda:
-	nvcc -o mandelbrot_cuda mandelbrot_cuda.cu -g -O3
+	@+make -C build mac
 
 clean:
-	@rm -f mandelbrot mandelbrot_cuda *.o
+	@rm -f mandelbrot mandelbrot_threaded mandelbrot_cuda build/*.o
 	@echo "Clean!"
 
