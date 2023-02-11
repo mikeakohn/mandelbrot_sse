@@ -40,6 +40,7 @@ struct _mandel_info
   float real_start4[16]; // 32
 };
 
+#ifndef NOASM
 void mandelbrot_sse(int *picture, struct _mandel_info *mandel_info);
 void mandelbrot_avx2(int *picture, struct _mandel_info *mandel_info);
 void mandelbrot_avx_512(int *picture, struct _mandel_info *mandel_info);
@@ -136,6 +137,7 @@ int mandel_calc_avx_512(
 
   return 0;
 }
+#endif
 
 int mandel_calc(
   int *picture,
@@ -314,6 +316,7 @@ int main(int argc, char *argv[])
 
   gettimeofday(&tv_start, NULL);
 
+#ifndef NOASM
   if (do_simd == 1)
   {
     mandel_calc_sse(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
@@ -329,6 +332,7 @@ int main(int argc, char *argv[])
     mandel_calc_avx_512(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
   }
     else
+#endif
   {
     mandel_calc(picture, WIDTH, HEIGHT, real_start, real_end, imaginary_start, imaginary_end);
   }

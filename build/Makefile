@@ -15,15 +15,19 @@ OBJECTS= \
 default: $(OBJECTS)
 	$(CC) -o ../mandelbrot ../x86/mandelbrot.c \
           $(OBJECTS) \
-	  $(CFLAGS)
+	  $(CFLAGS) -z noexecstack -no-pie
 	$(CC) -o ../mandelbrot_threaded ../x86/mandelbrot_threaded.c \
           $(OBJECTS) \
-	  -lpthread $(CFLAGS)
+	  -lpthread $(CFLAGS) -z noexecstack -no-pie
 
 mac: $(OBJECTS)
 	$(CC) -o ../x86/mandelbrot ../x86/mandelbrot.c \
           $(OBJECTS) \
-	  -O3 -Wall -g -m64 -Wl,-no_pie
+	  -O3 -Wall -g -m64
+
+noasm:
+	$(CC) -o ../x86/mandelbrot ../x86/mandelbrot.c \
+	  -O3 -Wall -g -m64 -DNOASM
 
 cuda:
 	nvcc -o ../mandelbrot_cuda ../cuda/mandelbrot_cuda.cu -g -O3
