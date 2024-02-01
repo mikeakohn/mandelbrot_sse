@@ -68,6 +68,10 @@ int mandel_calc_simd(
 printf("%p\n", picture);
   uint64_t a = mandelbrot_simd(picture, &mandel_info);
 printf("0x%lx\n", a);
+printf("0: 0x%08x\n", picture[0]);
+printf("4: 0x%08x\n", picture[1]);
+printf("8: 0x%08x\n", picture[2]);
+printf("c: 0x%08x\n", picture[3]);
 
   return 0;
 }
