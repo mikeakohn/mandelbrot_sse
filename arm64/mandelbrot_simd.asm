@@ -143,16 +143,17 @@ mandel_sse_for_loop:
   b.ne for_x
 
 exit_mandel:
-  shl v10.4s, v10.4s, #2
+  ;shl v10.4s, v10.4s, #2
+
   umov w12, v10.s[0]
   umov w13, v10.s[1]
   umov w14, v10.s[2]
   umov w15, v10.s[3]
 
-  ldr w12, [x0, x12]
-  ldr w13, [x0, x13]
-  ldr w14, [x0, x14]
-  ldr w15, [x0, w15]
+  ldr w12, [x0, x12, lsl #2]
+  ldr w13, [x0, x13, lsl #2]
+  ldr w14, [x0, x14, lsl #2]
+  ldr w15, [x0, x15, lsl #2]
 
   str w12, [x0, #0]
   str w13, [x0, #4]
