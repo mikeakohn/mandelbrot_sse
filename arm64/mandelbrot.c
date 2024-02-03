@@ -37,7 +37,7 @@ struct _mandel_info
   int width;             // 20
   int height;            // 24
   int reserved;
-  float real_start4[16]; // 32
+  float real_start4[4];  // 32
 };
 
 uint64_t mandelbrot_simd(int *picture, struct _mandel_info *mandel_info);
@@ -51,7 +51,7 @@ int mandel_calc_simd(
   float imaginary_start,
   float imaginary_end)
 {
-  struct _mandel_info mandel_info;
+  struct _mandel_info mandel_info __attribute__((aligned(16)));
 
   mandel_info.r_step4 = (real_end - real_start) * 4 / (float)width;
   mandel_info.r_step = (real_end - real_start) / (float)width;
@@ -65,13 +65,20 @@ int mandel_calc_simd(
   mandel_info.real_start4[2] = mandel_info.real_start4[1] + mandel_info.r_step;
   mandel_info.real_start4[3] = mandel_info.real_start4[2] + mandel_info.r_step;
 
+#if 0
+printf("r_step=%f\n", mandel_info.r_step);
+printf("i_step=%f\n", mandel_info.i_step);
+printf("real_end=%f\n", real_end);
+printf("imaginary_end=%f\n", imaginary_end);
+printf("i0=%f\n", mandel_info.imaginary_start);
+printf("%f\n", mandel_info.real_start4[0]);
+printf("%f\n", mandel_info.real_start4[1]);
+printf("%f\n", mandel_info.real_start4[2]);
+printf("%f\n", mandel_info.real_start4[3]);
 printf("%p\n", picture);
-  uint64_t a = mandelbrot_simd(picture, &mandel_info);
-printf("0x%lx\n", a);
-printf("0: 0x%08x\n", picture[0]);
-printf("4: 0x%08x\n", picture[1]);
-printf("8: 0x%08x\n", picture[2]);
-printf("c: 0x%08x\n", picture[3]);
+#endif
+
+  mandelbrot_simd(picture, &mandel_info);
 
   return 0;
 }

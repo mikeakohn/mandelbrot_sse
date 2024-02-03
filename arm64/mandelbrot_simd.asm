@@ -21,6 +21,7 @@
 ;; v6:  [ cmp value < 4.0 mask   ]
 ;; v7:  ti = (2 * zr * zi)
 ;; v8:  [ 2.0, 2.0, 2.0, 2.0 ]
+;; v9:  temp
 ;; v10: [   count,   count,   count,   count ]
 ;; v11: [ r_step4, r_step4, r_step4, r_step4 ]
 ;; v12: [ i_step,  i_step,  i_step,  i_step  ]
@@ -29,6 +30,7 @@
 ;; v15: zr * zr (aka zr^2)
 ;; v16: zi * zi (aka zi^2)
 ;; v17: tr = (zr * zr) - (zi * zi)
+;; v18: temp
 
 ;;  x0: int *picture
 ;;  x1: struct _mandel_info
@@ -43,6 +45,11 @@
 ;; w15: color 3
 
 .export mandelbrot_simd
+
+.macro CRASH
+  eor x2, x2, x2
+  str w2, [x2]
+.endm
 
 mandel_max:
   dc32 4.0, 4.0, 4.0, 4.0
@@ -81,25 +88,27 @@ mandelbrot_simd:
   ldr q8, mul_by_2
   ldr q3, mandel_max
 
-  ; q14 = [ 1, 1, 1, 1 ]
+  ; v14 = [ 1, 1, 1, 1 ]
   ldr q14, add_count
 
   ; x5 = int colors[]
   adr x5, colors
 
-  ; v2 = [ r_step4, r_step4, r_step4, r_step4 ]
+  ; v11 = [ r_step4, r_step4, r_step4, r_step4 ]
   ldr w7, [x1, #0]
-  dup v2.4s, w7
+  dup v11.4s, w7
 
   ; v13 = [ r0, r1, r2, r3 ]
-  ldr q13, [x1, #32]
+  ; offset of 32, but indexed by 2.
+  ;; FIXME: fix naken_asm.
+  ldr q13, [x1, #2]
 
   ; v12 = [ i_step,  i_step,  i_step,  i_step  ]
   ldr w7, [x1, #8]
   dup v12.4s, w7
 
   ; v1 = [ i0,  i1,  i2,  i3  ]
-  ldr w7, [x1, #8]
+  ldr w7, [x1, #16]
   dup v1.4s, w7
 
   ; y = height (w10)
@@ -110,6 +119,7 @@ for_y:
 
   ; x = width (w9)
   ldr w9, [x1, #20]
+  ;; FIXME: naken_asm is generating asr.
   lsr w9, w9, #2
 for_x:
   ; xmm2 = [ 1, 1, 1, 1 ]
@@ -121,10 +131,11 @@ for_x:
   eor v4.16b, v4.16b, v4.16b
   eor v5.16b, v5.16b, v5.16b
 
-  ; counts 
+  ; counts
   eor v10.16b, v10.16b, v10.16b
- 
+
   orr w11, wzr, #127
+  ;; FIXME: add mov.
   ;mov w11, #127
 mandel_simd_for_loop:
   ; v7 = ti = (2 * zr * zi);
@@ -144,28 +155,36 @@ mandel_simd_for_loop:
 
   ; q4 = zr = tr + r;
   ; q5 = zi = ti + i;
-  fadd v4.4s, v4.4s, v0.4s
-  fadd v5.4s, v5.4s, v1.4s
+  fadd v4.4s, v17.4s, v0.4s
+  fadd v5.4s, v7.4s, v1.4s
 
-  ; if ((tr * tr) + (ti * ti) > 4) break;
+  ; if ((tr * tr) + (ti * ti) > 4.0) break;
   ;movapd xmm6, xmm4
   ;movapd xmm7, xmm5
-  fmul v6.4s, v6.4s, v6.4s
-  fmul v7.4s, v7.4s, v7.4s
-  fadd v6.4s, v6.4s, v7.4s
+  ;mulps xmm6, xmm6
+  ;mulps xmm7, xmm7
+  ;addps xmm6, xmm7
+  ;fmul v6.4s, v17.4s, v17.4s
+  ;fmul v7.4s, v7.4s, v7.4s
+  ;fadd v6.4s, v6.4s, v7.4s
+
+  fmul v6.4s, v4.4s, v4.4s
+  fmul v7.4s, v5.4s, v5.4s
+  fadd v18.4s, v6.4s, v7.4s
+
   ;cmpleps xmm6, xmm3
-  fcmgt v6.4s, v3.4s, v6.4s
+  fcmgt v9.4s, v3.4s, v18.4s
 
   ; count const = 0 if less than
   ;pand xmm2, xmm6
   ;paddd xmm10, xmm2
-  and v2.16b, v2.16b, v6.16b
+  and v2.16b, v2.16b, v9.16b
   add v10.4s, v10.4s, v2.4s
 
   ;ptest xmm6, xmm6
   ;jz exit_mandel
-  addv s6, v6.4s
-  umov w7, v6.s[0]
+  addv s9, v9.4s
+  umov w7, v9.s[0]
   cmp w7, #0
   b.eq exit_mandel
 
@@ -173,7 +192,7 @@ mandel_simd_for_loop:
   b.ne mandel_simd_for_loop
 
 exit_mandel:
-  ;shl v10.4s, v10.4s, #2
+  sshr v10.4s, v10.4s, #3
 
   umov w12, v10.s[0]
   umov w13, v10.s[1]
@@ -193,8 +212,14 @@ exit_mandel:
   ; picture++
   add x0, x0, #16
 
+  ; r += r_step
+  fadd v0.4s, v0.4s, v11.4s
+
   subs w9, w9, #1
   b.ne for_x
+
+  ; i += i_step
+  fadd v1.4s, v1.4s, v12.4s
 
   subs w10, w10, #1
   b.ne for_y
