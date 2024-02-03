@@ -33,6 +33,7 @@
 ;;  x0: int *picture
 ;;  x1: struct _mandel_info
 ;;  x5: colors
+;;  w7: temp
 ;;  w9: for x
 ;; w10: for y
 ;; w11: for count
@@ -87,19 +88,19 @@ mandelbrot_simd:
   adr x5, colors
 
   ; v2 = [ r_step4, r_step4, r_step4, r_step4 ]
-  ldr w8, [x1, #0]
-  dup v2.4s, w8
+  ldr w7, [x1, #0]
+  dup v2.4s, w7
 
   ; v13 = [ r0, r1, r2, r3 ]
   ldr q13, [x1, #32]
 
   ; v12 = [ i_step,  i_step,  i_step,  i_step  ]
-  ldr w8, [x1, #8]
-  dup v12.4s, w8
+  ldr w7, [x1, #8]
+  dup v12.4s, w7
 
   ; v1 = [ i0,  i1,  i2,  i3  ]
-  ldr w8, [x1, #8]
-  dup v1.4s, w8
+  ldr w7, [x1, #8]
+  dup v1.4s, w7
 
   ; y = height (w10)
   ldr w10, [x1, #24]
@@ -109,6 +110,7 @@ for_y:
 
   ; x = width (w9)
   ldr w9, [x1, #20]
+  lsr w9, w9, #2
 for_x:
   ; xmm2 = [ 1, 1, 1, 1 ]
   ;movaps xmm2, xmm14
@@ -163,8 +165,8 @@ mandel_simd_for_loop:
   ;ptest xmm6, xmm6
   ;jz exit_mandel
   addv s6, v6.4s
-  umov w8, v6.s[0]
-  cmp w8, #0
+  umov w7, v6.s[0]
+  cmp w7, #0
   b.eq exit_mandel
 
   subs w11, w11, #1
@@ -197,6 +199,9 @@ exit_mandel:
   subs w10, w10, #1
   b.ne for_y
 
+  ret
+
+junk:
   ;ldr s0, add_count
   ;str q0, [x0]
 
@@ -204,6 +209,4 @@ exit_mandel:
   ;dup s0, v0.s[0]
   ;dup v0.4s, v0.s[0]
   ;str q0, [x0]
-
-  ret
 
