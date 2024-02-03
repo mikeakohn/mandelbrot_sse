@@ -12,16 +12,45 @@
 ;; r8         indirect result location register
 ;; r0 .. r7   parameter / result registers
 
+;; v0:  [   r,   r,   r,   r ]
+;; v1:  [  i0,  i1,  i2,  i3 ]
+;; v2:  [ inc, inc, inc, inc ]
+;; v3:  [ 4.0, 4.0, 4.0, 4.0 ]
+;; v4:  [  zr,  zr,  zr,  zr ]
+;; v5:  [  zi,  zi,  zi,  zi ]
+;; v6:  [ cmp value < 4.0 mask   ]
+;; v7:  ti = (2 * zr * zi)
+;; v8:  [ 2.0, 2.0, 2.0, 2.0 ]
+;; v10: [   count,   count,   count,   count ]
+;; v11: [ r_step4, r_step4, r_step4, r_step4 ]
+;; v12: [ i_step,  i_step,  i_step,  i_step  ]
+;; v13: [  r0,  r1,  r2,  r3 ]
+;; v14: [   1,   1,   1,   1 ]
+;; v15: zr * zr (aka zr^2)
+;; v16: zi * zi (aka zi^2)
+;; v17: tr = (zr * zr) - (zi * zi)
+
+;;  x0: int *picture
+;;  x1: struct _mandel_info
+;;  x5: colors
+;;  w9: for x
+;; w10: for y
+;; w11: for count
+;; w12: color 0
+;; w13: color 1
+;; w14: color 2
+;; w15: color 3
+
 .export mandelbrot_simd
 
 mandel_max:
-  dq 4.0, 4.0, 4.0, 4.0
+  dc32 4.0, 4.0, 4.0, 4.0
 
 add_count:
   dc32 1, 1, 1, 1
 
 mul_by_2:
-  dq 2.0, 2.0, 2.0, 2.0
+  dc32 2.0, 2.0, 2.0, 2.0
 
 colors:
   dc32 0xff0000  ; f
@@ -46,29 +75,29 @@ mandelbrot_simd:
   ; x0 = picture
   ; x1 = mandel_info
 
-  ; q2 = [ 2.0, 2.0, 2.0, 2.0 ]
-  ; q3 = [ 4.0, 4.0, 4.0, 4.0 ]
-  ldr q2, mul_by_2
+  ; v8 = [ 2.0, 2.0, 2.0, 2.0 ]
+  ; v3 = [ 4.0, 4.0, 4.0, 4.0 ]
+  ldr q8, mul_by_2
   ldr q3, mandel_max
 
-  ; q1 = [ 1, 1, 1, 1 ]
+  ; q14 = [ 1, 1, 1, 1 ]
   ldr q14, add_count
 
   ; x5 = int colors[]
   adr x5, colors
 
-  ; q2 = [ r_step4, r_step4, r_step4, r_step4 ]
+  ; v2 = [ r_step4, r_step4, r_step4, r_step4 ]
   ldr w8, [x1, #0]
   dup v2.4s, w8
 
-  ; q13 = [ r0, r1, r2, r3 ]
+  ; v13 = [ r0, r1, r2, r3 ]
   ldr q13, [x1, #32]
 
-  ; q3 = [ i_step,  i_step,  i_step,  i_step  ]
+  ; v12 = [ i_step,  i_step,  i_step,  i_step  ]
   ldr w8, [x1, #8]
-  dup v3.4s, w8
+  dup v12.4s, w8
 
-  ; q1 = [ i0,  i1,  i2,  i3  ]
+  ; v1 = [ i0,  i1,  i2,  i3  ]
   ldr w8, [x1, #8]
   dup v1.4s, w8
 
@@ -85,8 +114,8 @@ for_x:
   ;movaps xmm2, xmm14
   orr v2.16b, v14.16b, v14.16b
 
-  ; q4 = zr = [ 0.0, 0.0, 0.0, 0.0 ]
-  ; q5 = zi = [ 0.0, 0.0, 0.0, 0.0 ]
+  ; v4 = zr = [ 0.0, 0.0, 0.0, 0.0 ]
+  ; v5 = zi = [ 0.0, 0.0, 0.0, 0.0 ]
   eor v4.16b, v4.16b, v4.16b
   eor v5.16b, v5.16b, v5.16b
 
@@ -95,22 +124,21 @@ for_x:
  
   orr w11, wzr, #127
   ;mov w11, #127
-mandel_sse_for_loop:
-  ; q7 = ti = (2 * zr * zi);
+mandel_simd_for_loop:
+  ; v7 = ti = (2 * zr * zi);
   ;movapd xmm7, xmm4
   ;mulps xmm7, xmm5
   ;mulps xmm7, xmm8
-
   fmul v7.4s, v4.4s, v5.4s
   fmul v7.4s, v7.4s, v8.4s
 
-  ; q4 = tr = ((zr * zr) - (zi * zi));
+  ; v17 = tr = ((zr * zr) - (zi * zi));
   ;mulps xmm4, xmm4
   ;mulps xmm5, xmm5
   ;subps xmm4, xmm5
-  fmul v4.4s, v4.4s, v4.4s
-  fmul v5.4s, v5.4s, v5.4s
-  fsub v4.4s, v4.4s, v5.4s
+  fmul v15.4s, v4.4s, v4.4s
+  fmul v16.4s, v5.4s, v5.4s
+  fsub v17.4s, v15.4s, v16.4s
 
   ; q4 = zr = tr + r;
   ; q5 = zi = ti + i;
@@ -135,12 +163,12 @@ mandel_sse_for_loop:
   ;ptest xmm6, xmm6
   ;jz exit_mandel
   addv s6, v6.4s
-  umov w8, v0.s[0]
+  umov w8, v6.s[0]
   cmp w8, #0
   b.eq exit_mandel
 
-  subs w9, w9, #1
-  b.ne for_x
+  subs w11, w11, #1
+  b.ne mandel_simd_for_loop
 
 exit_mandel:
   ;shl v10.4s, v10.4s, #2
@@ -150,10 +178,10 @@ exit_mandel:
   umov w14, v10.s[2]
   umov w15, v10.s[3]
 
-  ldr w12, [x0, x12, lsl #2]
-  ldr w13, [x0, x13, lsl #2]
-  ldr w14, [x0, x14, lsl #2]
-  ldr w15, [x0, x15, lsl #2]
+  ldr w12, [x5, x12, lsl #2]
+  ldr w13, [x5, x13, lsl #2]
+  ldr w14, [x5, x14, lsl #2]
+  ldr w15, [x5, x15, lsl #2]
 
   str w12, [x0, #0]
   str w13, [x0, #4]
@@ -163,16 +191,19 @@ exit_mandel:
   ; picture++
   add x0, x0, #16
 
+  subs w9, w9, #1
+  b.ne for_x
+
   subs w10, w10, #1
   b.ne for_y
 
   ;ldr s0, add_count
   ;str q0, [x0]
 
-  ldr s0, add_count
+  ;ldr s0, add_count
   ;dup s0, v0.s[0]
-  dup v0.4s, v0.s[0]
-  str q0, [x0]
+  ;dup v0.4s, v0.s[0]
+  ;str q0, [x0]
 
   ret
 
