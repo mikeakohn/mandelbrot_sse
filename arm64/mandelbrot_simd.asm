@@ -115,7 +115,7 @@ mandelbrot_simd:
   ldr w10, [x1, #24]
 for_y:
   ;; v0 = [ r0, r1, r2, r3 ]
-  orr v0.16b, v13.16b, v13.16b
+  orr.16b v0, v13, v13
 
   ; x = width (w9)
   ldr w9, [x1, #20]
@@ -124,15 +124,15 @@ for_y:
 for_x:
   ; xmm2 = [ 1, 1, 1, 1 ]
   ;movaps xmm2, xmm14
-  orr v2.16b, v14.16b, v14.16b
+  orr.16b v2, v14, v14
 
   ; v4 = zr = [ 0.0, 0.0, 0.0, 0.0 ]
   ; v5 = zi = [ 0.0, 0.0, 0.0, 0.0 ]
-  eor v4.16b, v4.16b, v4.16b
-  eor v5.16b, v5.16b, v5.16b
+  eor.16b v4, v4, v4
+  eor.16b v5, v5, v5
 
   ; counts
-  eor v10.16b, v10.16b, v10.16b
+  eor.16b v10, v10, v10
 
   orr w11, wzr, #127
   ;; FIXME: add mov.
@@ -142,21 +142,21 @@ mandel_simd_for_loop:
   ;movapd xmm7, xmm4
   ;mulps xmm7, xmm5
   ;mulps xmm7, xmm8
-  fmul v7.4s, v4.4s, v5.4s
-  fmul v7.4s, v7.4s, v8.4s
+  fmul.4s v7, v4, v5
+  fmul.4s v7, v7, v8
 
   ; v17 = tr = ((zr * zr) - (zi * zi));
   ;mulps xmm4, xmm4
   ;mulps xmm5, xmm5
   ;subps xmm4, xmm5
-  fmul v15.4s, v4.4s, v4.4s
-  fmul v16.4s, v5.4s, v5.4s
-  fsub v17.4s, v15.4s, v16.4s
+  fmul.4s v15, v4, v4
+  fmul.4s v16, v5, v5
+  fsub.4s v17, v15, v16
 
   ; q4 = zr = tr + r;
   ; q5 = zi = ti + i;
-  fadd v4.4s, v17.4s, v0.4s
-  fadd v5.4s, v7.4s, v1.4s
+  fadd.4s v4, v17, v0
+  fadd.4s v5, v7, v1
 
   ; if ((tr * tr) + (ti * ti) > 4.0) break;
   ;movapd xmm6, xmm4
@@ -164,22 +164,18 @@ mandel_simd_for_loop:
   ;mulps xmm6, xmm6
   ;mulps xmm7, xmm7
   ;addps xmm6, xmm7
-  ;fmul v6.4s, v17.4s, v17.4s
-  ;fmul v7.4s, v7.4s, v7.4s
-  ;fadd v6.4s, v6.4s, v7.4s
-
-  fmul v6.4s, v4.4s, v4.4s
-  fmul v7.4s, v5.4s, v5.4s
-  fadd v18.4s, v6.4s, v7.4s
+  fmul.4s v6, v4, v4
+  fmul.4s v7, v5, v5
+  fadd.4s v18, v6, v7
 
   ;cmpleps xmm6, xmm3
-  fcmgt v9.4s, v3.4s, v18.4s
+  fcmgt.4s v9, v3, v18
 
   ; count const = 0 if less than
   ;pand xmm2, xmm6
   ;paddd xmm10, xmm2
-  and v2.16b, v2.16b, v9.16b
-  add v10.4s, v10.4s, v2.4s
+  and.16b v2, v2, v9
+  add.4s v10, v10, v2
 
   ;ptest xmm6, xmm6
   ;jz exit_mandel
@@ -192,7 +188,7 @@ mandel_simd_for_loop:
   b.ne mandel_simd_for_loop
 
 exit_mandel:
-  sshr v10.4s, v10.4s, #3
+  sshr.4s v10, v10, #3
 
   umov w12, v10.s[0]
   umov w13, v10.s[1]
@@ -213,25 +209,16 @@ exit_mandel:
   add x0, x0, #16
 
   ; r += r_step
-  fadd v0.4s, v0.4s, v11.4s
+  fadd.4s v0, v0, v11
 
   subs w9, w9, #1
   b.ne for_x
 
   ; i += i_step
-  fadd v1.4s, v1.4s, v12.4s
+  fadd.4s v1, v1, v12
 
   subs w10, w10, #1
   b.ne for_y
 
   ret
-
-junk:
-  ;ldr s0, add_count
-  ;str q0, [x0]
-
-  ;ldr s0, add_count
-  ;dup s0, v0.s[0]
-  ;dup v0.4s, v0.s[0]
-  ;str q0, [x0]
 
